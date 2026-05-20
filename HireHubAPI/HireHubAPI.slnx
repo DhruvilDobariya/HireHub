@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="HireHubAPI/HireHubAPI.csproj" />
+  <Project Path="HireHubApplication/HireHubApplication.csproj" Id="e7b6f541-9549-4715-a72f-a243ee1a0c72" />
+  <Project Path="HireHubBAL/HireHubInfrastructure.csproj" Id="e059ec33-adde-4157-aefd-4648a86f15b5" />
+  <Project Path="HireHubDomain/HireHubDomain.csproj" Id="d180262a-68d7-4304-ada7-f4e500f24fe2" />
+</Solution>
