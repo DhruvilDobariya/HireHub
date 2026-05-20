@@ -27,6 +27,24 @@ namespace HireHubApplication.Services
             return new Response { Data = companies };
         }
 
+        public async Task<Response> CreateCompanyAsync(Company company)
+        {
+            // 1. Check if a company with the same name already exists
+            var exists = await _companyRepo.NameExistsAsync(company.Name);
+            if (exists) return new Response { IsError = true, Message = "Company name already registered." };
+
+            // 2. Save to database via repository
+            await _companyRepo.AddAsync(company);
+
+            // 3. Return standard response structure
+            return new Response
+            {
+                IsError = false,
+                Message = "Company created successfully.",
+                Data = company // Pass the created object back (it will now include its new Database ID)
+            };
+        }
+
         public async Task<Response> UpdateCompanyAsync(Company company)
         {
             await _companyRepo.UpdateAsync(company);

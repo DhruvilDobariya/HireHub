@@ -1,4 +1,6 @@
-﻿namespace HireHubDomain.Entities
+﻿using System.Text.Json.Serialization;
+
+namespace HireHubDomain.Entities
 {
     public class JobApplication
     {
@@ -9,7 +11,9 @@
         public ApplicationStatus Status { get; set; } = ApplicationStatus.Pending;
         public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
 
-        public Job Job { get; set; }
-        public SeekerProfile Seeker { get; set; }
+        [JsonIgnore]
+        public Job? Job { get; set; }
+        [JsonIgnore]
+        public SeekerProfile? Seeker { get; set; }
     }
 }

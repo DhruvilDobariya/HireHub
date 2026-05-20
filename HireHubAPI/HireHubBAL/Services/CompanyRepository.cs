@@ -14,5 +14,16 @@ namespace HireHubInfrastructure.Services
         {
             return await _dbSet.FirstOrDefaultAsync(c => c.UserId == userId);
         }
+
+        public async Task AddAsync(Company company)
+        {
+            await _dbSet.AddAsync(company);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> NameExistsAsync(string name)
+        {
+            return await _dbSet.AnyAsync(c => c.Name.ToLower() == name.ToLower());
+        }
     }
 }

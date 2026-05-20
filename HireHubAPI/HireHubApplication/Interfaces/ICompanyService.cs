@@ -7,6 +7,7 @@ namespace HireHubApplication.Interfaces
     {
         Task<Response> GetCompanyByUserIdAsync(int userId);
         Task<Response> GetAllCompaniesAsync();
+        Task<Response> CreateCompanyAsync(Company company);
         Task<Response> UpdateCompanyAsync(Company company);
     }
 }

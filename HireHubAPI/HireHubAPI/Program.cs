@@ -7,58 +7,43 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Scalar.AspNetCore;
 using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Controllers with Enum Support
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
-// 2. Swagger Configuration (The Fix is here)
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddOpenApi(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "HireHub API", Version = "v1" });
-
-    // 1. Define the Scheme
-    var securityScheme = new OpenApiSecurityScheme
+    options.AddDocumentTransformer((document, context, ct) =>
     {
-        Name = "JWT Authentication",
-        Description = "Enter JWT Bearer token only",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT"
-    };
-
-    options.AddSecurityDefinition("Bearer", securityScheme);
-
-    // 2. The Global Requirement (Fixes the CS1503 and CS1950 errors)
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+        document.Components.SecuritySchemes.Add("Bearer", new OpenApiSecurityScheme
         {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new List<string>() // Must be a List<string>, not an Array in v10
-        }
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Description = "Enter your JWT token"
+        });
+        document.Security ??= new List<OpenApiSecurityRequirement>();
+        document.Security.Add(new OpenApiSecurityRequirement
+        {
+            [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+        });
+        return Task.CompletedTask;
     });
 });
-// 3. Database
+
 builder.Services.AddDbContext<HireHubDBContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
-// 4. JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "Your_32_Character_Long_Secret_Key_Here";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "HireHub";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "HireHubUsers";
@@ -74,25 +59,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ClockSkew = TimeSpan.Zero
         };
     });
 
 builder.Services.AddAuthorization();
 
-// 5. CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
-// 6. DI Registration
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISeekerProfileRepository, SeekerProfileRepository>();
 builder.Services.AddScoped<IJobRepository, JobRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IJobApplicationRepository, JobApplicationRepository>();
-
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISeekerProfileService, SeekerProfileService>();
 builder.Services.AddScoped<IJobService, JobService>();
@@ -103,15 +87,14 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-// 7. Middleware
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
+    app.MapOpenApi();
+    app.MapScalarApiReference(options =>
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "HireHub API v1");
-        options.RoutePrefix = string.Empty;
+        options.Title = "HireHub API";
     });
+    app.MapGet("/index.html", () => Results.Redirect("/scalar/v1"));
 }
 
 app.UseHttpsRedirection();

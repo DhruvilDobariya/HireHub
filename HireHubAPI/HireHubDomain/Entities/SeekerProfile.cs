@@ -1,4 +1,6 @@
-﻿namespace HireHubDomain.Entities
+﻿using System.Text.Json.Serialization;
+
+namespace HireHubDomain.Entities
 {
     public class SeekerProfile
     {
@@ -10,7 +12,8 @@
         public string ResumeUrl { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public User User { get; set; }
-        public ICollection<JobApplication> Applications { get; set; }
+        public User? User { get; set; }
+        [JsonIgnore]
+        public ICollection<JobApplication>? Applications { get; set; }
     }
 }

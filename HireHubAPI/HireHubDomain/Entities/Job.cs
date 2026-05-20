@@ -12,7 +12,7 @@
         public decimal? SalaryMax { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public Company Company { get; set; }
-        public ICollection<JobApplication> Applications { get; set; }
+        public Company? Company { get; set; }
+        public ICollection<JobApplication>? Applications { get; set; }
     }
 }

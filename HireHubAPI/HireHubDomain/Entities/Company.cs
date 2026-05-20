@@ -1,4 +1,6 @@
-﻿namespace HireHubDomain.Entities
+﻿using System.Text.Json.Serialization;
+
+namespace HireHubDomain.Entities
 {
     public class Company
     {
@@ -10,7 +12,8 @@
         public string Location { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public User User { get; set; }
-        public ICollection<Job> Jobs { get; set; }
+        public User? User { get; set; }
+        [JsonIgnore]
+        public ICollection<Job>? Jobs { get; set; }
     }
 }

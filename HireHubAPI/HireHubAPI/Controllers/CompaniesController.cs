@@ -32,13 +32,13 @@ namespace HireHubAPI.Controllers
             return Ok(response);
         }
 
-        //[HttpPost]
-        //[Authorize(Roles = "Employer")]
-        //public async Task<IActionResult> CreateCompany([FromBody] Company company)
-        //{
-        //    var response = await _companyService.CreateCompanyAsync(company);
-        //    return Ok(response);
-        //}
+        [HttpPost]
+        [Authorize(Roles = "Employer")]
+        public async Task<IActionResult> CreateCompany([FromBody] Company company)
+        {
+            var response = await _companyService.CreateCompanyAsync(company);
+            return Ok(response);
+        }
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Employer")]
